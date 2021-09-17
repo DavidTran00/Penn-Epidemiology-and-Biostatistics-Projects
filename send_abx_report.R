@@ -186,7 +186,7 @@ most_recent_data <- function(data, n_months) {
 
 compute_quantiles <- function(data) {
   # calculates quartile statistic of prescription rates for ALL providers for the most recent month
-  doctors <- data %>% distinct(VISIT_PROV_NAME) %>% pull
+  doctors <- data %>% distinct(visit_prov_name) %>% pull
   month <- most_recent_months(data, 1)
   presc_rates <- sapply(doctors, monthly_rate, data = data, month = month)
   quantile(presc_rates, na.rm = TRUE)
@@ -197,8 +197,8 @@ which_quantile <- function(presc_rate, quartiles) {
   ifelse(is.nan(presc_rate), NA, min(which(presc_rate <= quartiles[-1])))
 }
 
-get_presc_rate <- function(data, disease, prescriber, TIER3 = F) {
-  data <- ifelse(!TIER3, data, data[!is.na(data$TIER3), ])
+get_presc_rate <- function(data, disease, prescriber, tier3 = F) {
+  data <- ifelse(!TIER3, data, data[!is.na(data$tier3), ])
   if (!(disease == "all")) {
     diseases <- c(1, 2, 3, 7)
     names(diseases) <- c("bronchitis", "sinusitis", "pharyngitis", "other")
@@ -209,9 +209,9 @@ get_presc_rate <- function(data, disease, prescriber, TIER3 = F) {
   }
   if (prescriber == "best") {
     best_rate <- 1
-    names <- unique(presc_data$VISIT_PROV_NAME)
+    names <- unique(presc_data$visit_prov_name)
     for (name in names) {
-      doc_data <- data[data$VISIT_PROV_NAME == name, ]
+      doc_data <- data[data$visit_prov_name == name, ]
       n_presc <- dim(doc_data[doc_data$presc_abx == 1, ])[1]
       n_visits <- dim(doc_data)[1]
       presc_rate <- n_presc / n_visits
@@ -241,8 +241,8 @@ generate_reports <- function(data) {
   monyrs <- most_recent_months(data, time_window)
   last_month <- most_recent_months(data, 1)
   data <- filter(data, monyr %in% most_recent_months(data, time_window))
-  data_tier3 <- filter(data, TIER == 3)
-  prescribers <- unique(data$VISIT_PROV_NAME)
+  data_tier3 <- filter(data, tier == 3)
+  prescribers <- unique(data$visit_prov_name)
   
   cohorts <- 1:4
   best_performers <- sapply(cohorts, FUN = best_prescription_rate_new, data = data, diagnosis = NA, min_obs = 20, n_months = 4, return_name = T)
@@ -267,7 +267,7 @@ generate_reports <- function(data) {
     n_visit_tier3 <- dim(data_tier3_last_month)[1]
     
     # create data frames with time series of prescription rates
-    cohort <- tail(data[data$VISIT_PROV_NAME == doc, ]$char_quar, 1)
+    cohort <- tail(data[data$visit_prov_name == doc, ]$char_quar, 1)
     df <- data.frame("monyrs" = monyrs, 
                      "You" = time_series(data, doc), 
                      "Mean" = time_series(data, "all"), 
@@ -385,7 +385,7 @@ monthly_rate <- function(data, prescriber, month) {
   if (is.numeric(prescriber)) {
     data <- data %>% filter(char_quar == prescriber)
   } else if (prescriber != "all") {
-    data <- data %>% filter(VISIT_PROV_NAME == prescriber)
+    data <- data %>% filter(visit_prov_name == prescriber)
   }
   data <- data[data$monyr == month, ]
   n_observ <- dim(data)[1]
@@ -396,7 +396,7 @@ monthly_rate <- function(data, prescriber, month) {
 
 rate_with_min <- function(data, prescriber = NA, diagnosis = NA, min_obs = 0) {
   if (!is.na(prescriber)) {
-    data <- filter(data, VISIT_PROV_NAME == prescriber)
+    data <- filter(data, visit_prov_name == prescriber)
   }
   if (!is.na(diagnosis)) {
     data <- filter(data, disease == diagnosis)
@@ -411,7 +411,7 @@ best_prescription_rate <- function(data, diagnosis = NA, min_obs = 20, n_months 
     data <- filter(data, char_quar == cohort)
   }
   data <- filter(data, monyr %in% most_recent_months(data, n_months))
-  rates <- sapply(unique(data$VISIT_PROV_NAME), 
+  rates <- sapply(unique(data$visit_prov_name), 
                   FUN = rate_with_min, 
                   data = data, 
                   diagnosis = diagnosis, 
@@ -454,7 +454,7 @@ best_prescription_rate_new <- function(data, diagnosis = NA, min_obs = 20, n_mon
 diagnosis_table <- function(data, prescriber, min_obs = 20, n_months = 4) {
   data <- most_recent_data(data, n_months = n_months)
   diagnosis_codes <- c(1, 2, 3, 7)
-  n_visits <- sapply(diagnosis_codes, FUN = function(x) nrow(filter(data, VISIT_PROV_NAME == prescriber, disease == x)))
+  n_visits <- sapply(diagnosis_codes, FUN = function(x) nrow(filter(data, visit_prov_name == prescriber, disease == x)))
   pres_rates <- sapply(diagnosis_codes,
                        FUN = rate_with_min, 
                        data = data,
