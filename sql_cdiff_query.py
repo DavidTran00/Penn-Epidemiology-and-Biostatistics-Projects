@@ -4,7 +4,7 @@
 # microbiology query from Penn Data
 # Store (PDS), this script processes
 # 1,000,000 rows of data at a time
-# and improves query performance.
+# to improve query performance.
 ###########################################
 ###########################################
 
