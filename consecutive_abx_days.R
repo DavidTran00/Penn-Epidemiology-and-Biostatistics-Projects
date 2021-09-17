@@ -1,12 +1,14 @@
 #############################################
 #############################################
-# Take table containing antibiotic 
-# administration dates and determine
-# which dates are consecutive.
-
-# Use resulting data frame to calculate
-# consecutive days of antibiotic
-# therapy for each subject (record_id).
+# Use table containing antibiotic 
+# administration dates (abx_data). 
+#
+# For each subject (record_id),
+# determine which dates are consecutive.
+#
+# Use resulting data frame (df_new) to 
+# calculate consecutive days of antibiotic
+# therapy for each subject.
 #############################################
 #############################################
 
