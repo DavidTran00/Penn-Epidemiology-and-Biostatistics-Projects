@@ -2,7 +2,7 @@
 ######################################
 # Pulls COVID vaccine data for
 # Philadelphia based on zip code
-
+#
 # Set to run daily using cron job
 # to create time series data set
 ######################################
