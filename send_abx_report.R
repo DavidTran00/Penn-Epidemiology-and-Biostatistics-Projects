@@ -4,8 +4,9 @@
 # for UPHS Antibiotic Stewardship
 #
 # Takes monthly UPHS prescribing data for
-# individual providers, analyzes data,
-# sends email report to providers.
+# providers, analyzes data, sends individual 
+# email report with graphs and tables
+# generated in R Markdown to each provider.
 ############################################
 ############################################
 
@@ -49,7 +50,6 @@ library(readxl)
 library(reshape2)
 library(rmarkdown)
 library(stringr)
-library(sqldf)
 library(tidyverse)
 
 main_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
@@ -198,7 +198,7 @@ which_quantile <- function(presc_rate, quartiles) {
 }
 
 get_presc_rate <- function(data, disease, prescriber, tier3 = F) {
-  data <- ifelse(!TIER3, data, data[!is.na(data$tier3), ])
+  data <- ifelse(!tier3, data, data[!is.na(data$tier3), ])
   if (!(disease == "all")) {
     diseases <- c(1, 2, 3, 7)
     names(diseases) <- c("bronchitis", "sinusitis", "pharyngitis", "other")
@@ -246,7 +246,7 @@ generate_reports <- function(data) {
   
   cohorts <- 1:4
   best_performers <- sapply(cohorts, FUN = best_prescription_rate_new, data = data, diagnosis = NA, min_obs = 20, n_months = 4, return_name = T)
-  best_performers_tier3 <- sapply(cohorts, FUN = best_prescription_rate_new, data = filter(data, TIER == 3), diagnosis = NA, min_obs = 20, n_months = 4, return_name = T)
+  best_performers_tier3 <- sapply(cohorts, FUN = best_prescription_rate_new, data = filter(data, tier == 3), diagnosis = NA, min_obs = 20, n_months = 4, return_name = T)
   print(best_performers)
   print(best_performers_tier3)
   all_series <- time_series(data, "all")
@@ -254,13 +254,13 @@ generate_reports <- function(data) {
   quartiles <- compute_quantiles(data)
   quartiles_tier3 <- compute_quantiles(data_tier3)
   cohort_series <- sapply(cohorts, FUN = time_series, data = data)
-  cohort_series_tier3 <- sapply(cohorts, FUN = time_series, data = filter(data, TIER == 3))
+  cohort_series_tier3 <- sapply(cohorts, FUN = time_series, data = filter(data, tier == 3))
   
   for (doc in prescribers) {
     # calculate absolute number of prescriptions and visits during last month for report
-    doc_data <- filter(data, VISIT_PROV_NAME == doc)
-    data_last_month <-  filter(data, VISIT_PROV_NAME == doc, monyr %in% last_month)
-    data_tier3_last_month <-  filter(data_tier3, VISIT_PROV_NAME == doc, monyr %in% last_month)
+    doc_data <- filter(data, visit_prov_name == doc)
+    data_last_month <-  filter(data, visit_prov_name == doc, monyr %in% last_month)
+    data_tier3_last_month <-  filter(data_tier3, visit_prov_name == doc, monyr %in% last_month)
     n_presc_resp <- dim(filter(data_last_month, presc_abx == 1))[1]
     n_visit_resp <- dim(data_last_month)[1]
     n_presc_tier3 <- dim(filter(data_tier3_last_month, presc_abx == 1))[1]
@@ -391,7 +391,6 @@ monthly_rate <- function(data, prescriber, month) {
   n_observ <- dim(data)[1]
   n_prescr <- dim(data %>% filter(presc_abx == 1))[1]
   n_prescr / n_observ
-  #ifelse(n_observ == 0, NA, n_prescr / n_observ)
 }
 
 rate_with_min <- function(data, prescriber = NA, diagnosis = NA, min_obs = 0) {
@@ -421,7 +420,7 @@ best_prescription_rate <- function(data, diagnosis = NA, min_obs = 20, n_months 
 
 prescription_rate_min_obs <- function(data, provider, min_obs) {
   # calculates average monthly prescription rate of provider if EVERY MONTH had AT LEAST n_min observations, returns NA otherwise
-  data <- filter(data, VISIT_PROV_NAME == provider)
+  data <- filter(data, visit_prov_name == provider)
   months <- distinct(data, monyr) %>% pull
   n_visits_total <- nrow(data)
   n_prescriptions_total <- nrow(filter(data, presc_abx == 1))
@@ -440,7 +439,7 @@ best_prescription_rate_new <- function(data, diagnosis = NA, min_obs = 20, n_mon
     data <- filter(data, char_quar == cohort)
   }
   data <- most_recent_data(data, n_months)
-  providers <- distinct(data, VISIT_PROV_NAME) %>% pull
+  providers <- distinct(data, visit_prov_name) %>% pull
   prescription_rates <- sapply(providers,
                                FUN = prescription_rate_min_obs,
                                data = data,
