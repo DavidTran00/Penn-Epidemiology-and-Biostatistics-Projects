@@ -14,14 +14,23 @@ import datetime
 
 base_dir = "C:/Users/Data/micro_cdiff"
 
+#######################################################
 # SQL query to pull Clostridioides difficile cultures
+#######################################################
+
 sql = "SELECT * FROM (SELECT rownum rn, M.* FROM ODS.MICROBIOLOGY M WHERE M.MICRO_CULTURE LIKE '%C. diff%')"
 
+#######################################################
 # enter credentials to connect to PDS
+#######################################################
+
 pds_conn = cx_Oracle.connect('USERNAME/PASSWORD')
 pds_cursor = pds_conn.cursor()
 
+#######################################################
 # process data export in chunks to improve efficiency 
+#######################################################
+
 step = 1000000
 for i in range(3):
     print("Processing chunk " + str(i) + "...")
@@ -35,6 +44,9 @@ for i in range(3):
         writer = csv.writer(f)
         writer.writerows(results)
 
+#######################################################        
 # close connection to PDS        
+#######################################################
+
 pds_conn.close()
 print("Finished.")
