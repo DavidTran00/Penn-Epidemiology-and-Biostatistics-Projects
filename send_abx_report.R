@@ -59,6 +59,8 @@ current_date <- Sys.Date()
 
 #######################################
 # read UPHS data
+# functions for testing and sending
+## emails
 #######################################
 setwd(main_dir)
 if (substr(data_file, nchar(data_file) - 2, nchar(data_file)) == "csv") {
@@ -113,6 +115,10 @@ send_email_report <- function(recipient_address, subject, body, attachments) {
             send = TRUE)
 }
 
+
+################################################################################
+# pre-processing steps
+################################################################################
 
 preprocess_data <- function(df) {
   ##############################################################################
@@ -186,6 +192,10 @@ preprocess_data <- function(df) {
   return(prov_abx)
 }
 
+###################################################
+# report components
+###################################################
+
 most_recent_data <- function(data, n_months) {
   recent_months <- data %>% distinct(monyr) %>% tail(n_months) %>% pull
   filter(data, monyr %in% recent_months)
@@ -243,6 +253,11 @@ time_series <- function(data, prescriber) {
   months <- unique(data$monyr)
   sapply(months, FUN = monthly_rate, data = data, prescriber = prescriber)
 }
+
+
+##################################################
+# combine components to generate report
+##################################################
 
 generate_reports <- function(data) {
   monyrs <- most_recent_months(data, time_window)
