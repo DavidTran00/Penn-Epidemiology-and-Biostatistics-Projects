@@ -163,13 +163,20 @@ preprocess_data <- function(df) {
   
   # create month name variable
   prov_abx$month <- months(prov_abx$enc_contact)
-  prov_abx$month <- ifelse(prov_abx$month == "January", "Jan", ifelse(prov_abx$month == "February","Feb", 
-                    ifelse(prov_abx$month == "March","Mar", ifelse(prov_abx$month == "April","Apr", 
-                    ifelse(prov_abx$month == "May","May", ifelse(prov_abx$month == "June","Jun", 
-                    ifelse(prov_abx$month == "July","Jul", ifelse(prov_abx$month == "August","Aug", 
-                    ifelse(prov_abx$month == "September","Sep", ifelse(prov_abx$month == "October","Oct", 
-                    ifelse(prov_abx$month == "November","Nov", ifelse(prov_abx$month == "December","Dec", "none")))))))))                                                                           )))
-  
+  prov_abx$month <- mutate(month = recode_factor(month, 
+                                                 "January" = "Jan",
+                                                 "February" = "Feb",
+                                                 "March" = "Mar",
+                                                 "April" = "Apr",
+                                                 "May" = "May",
+                                                 "June" = "Jun",
+                                                 "July" = "Jul",
+                                                 "August" = "Aug", 
+                                                 "September" = "Sep",
+                                                 "October" = "Oct",
+                                                 "November" = "Nov",
+                                                 "December" = "Dec"))
+   
   # extract year
   prov_abx$year <- substring(prov_abx$enc_contact, 1, 4)
   
