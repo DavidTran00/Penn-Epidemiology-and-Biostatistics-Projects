@@ -1,14 +1,14 @@
-############################################
-############################################
+################################################
+################################################
 # Antibiotic Prescribing Performance
 # for UPHS Antibiotic Stewardship
 #
 # Takes monthly UPHS prescribing data for
-# providers, analyzes data, sends individual 
+# providers, analyzes data, and sends individual 
 # email report with graphs and tables
 # generated in R Markdown to each provider.
-############################################
-############################################
+################################################
+################################################
 
 #######################################
 # CONFIGURATION
